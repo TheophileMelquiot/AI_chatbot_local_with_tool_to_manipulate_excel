@@ -16,6 +16,13 @@ Timeline of the project :
 Not putting all the detail step for each of this projet like fine tuning, dataset generation ...
 
 
+
+
+
+
+
+#
+
 # First step : Extract model
 
 ![ROC Curve](images/result_first_excel_finder.png)
