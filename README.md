@@ -4,13 +4,13 @@ The goal is in the end to make an simple chatbot with tool to manipulate, extrac
 
 Timeline of the project :
 
-            Making an extract model in python to capture the wanted data 
-                                          |
-        Making the interface and an chatbot to pass input into the extracting model 
-                                          |
-                                  Deploy the model 
-                                          |
-                              Adding new tools gradually 
+                                    Making an extract model in python to capture the wanted data 
+                                                                  |
+                                Making the interface and an chatbot to pass input into the extracting model 
+                                                                  |
+                                                          Deploy the model 
+                                                                  |
+                                                      Adding new tools gradually 
 
 
 Not putting all the detail step for each of this projet like fine tuning, dataset generation ...
