@@ -25,4 +25,18 @@ Not putting all the detail step for each of this projet like fine tuning, datase
 
 # First step : Extract model
 
-![ROC Curve](images/result_first_excel_finder.png)
+
+![Matrice](images/Figure_1.png)
+![ROC Curve](images/Figure_roc.png)
+
+The model present already some pretty good result that come from his architecture because I'm using an SentenceTransformer which encode with good result the word. Thus my model is really doing embedding + logistic regression, its already a linearly classifier on embedding. The pipeline looking like that : 
+
+                                                        header embedding
+                                                              +
+                                                        value embedding
+                                                              +
+                                                        column statistics
+                                                              =
+                                                      logistic regression
+                                                        
+But it encounter some basic error such has too much representation of certain class and some other under represented which make noise in the dataset. The training set and testing is not really independant, not k cross validation, normalising my stats and inputting and confidence threshold ... 
