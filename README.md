@@ -25,9 +25,10 @@ Not putting all the detail step for each of this projet like fine tuning, datase
 
 # First step : Extract model
 
-
-![Matrice](images/Figure_1.png)
-![ROC Curve](images/Figure_roc.png)
+<p align="center">
+  <img src="images/Figure_1.png" width="45%" />
+  <img src="images/Figure_roc.png" width="45%" />
+</p>
 
 The model present already some pretty good result that come from his architecture because I'm using an SentenceTransformer which encode with good result the word. Thus my model is really doing embedding + logistic regression, its already a linearly classifier on embedding. The pipeline looking like that : 
 
@@ -40,3 +41,14 @@ The model present already some pretty good result that come from his architectur
                                                       logistic regression
                                                         
 But it encounter some basic error such has too much representation of certain class and some other under represented which make noise in the dataset. The training set and testing is not really independant, not k cross validation, normalising my stats and inputting and confidence threshold ... 
+
+
+## Infusing new features to the model, SMOTE, K-fold validations, Normalisation of all the features and multiple sanity test to check for data leakage or overfitting
+
+<p align="center">
+  <img src="images/Finnal_matrix.png" width="45%" />
+  <img src="images/Final_ROC.png" width="45%" />
+</p>
+
+
+
