@@ -69,10 +69,14 @@ Full pipeline of how i train my model :
                                                               =
                                                           Model saved 
 
+That is my final model architecture for this project, i got 9 features to determine the header or not, i use the mini-llmV4-6 which about 90 Mb to embedded the input word, i Scale all my features to be sure that the weight of each features is determine by it's importance and not his scale and because an linear regression model doesn't do it internally, i use an SMOTE to artifically develop the number of sample for the underrepresented class and then i do my first logistic regression on an K-fold of 5 fold to test the accuracy on each partition of the data and then i train the model on my whole DATASET.
+
 <p align="center">
   <img src="images/final_matrix.png" width="45%" />
   <img src="images/final_ROC.png" width="45%" />
 </p>
+
+
 
 
 
