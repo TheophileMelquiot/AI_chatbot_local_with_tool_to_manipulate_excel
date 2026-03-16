@@ -45,10 +45,37 @@ But it encounter some basic error such has too much representation of certain cl
 
 # Infusing new features to the model, SMOTE, K-fold validations, Normalisation of all the features and multiple sanity test to check for data leakage or overfitting
 
+Full pipeline of how i train my model : 
+
+                                                       Header + sample_values
+                                                              ↓
+                                                         Feature engineering
+                                                          ├ embeddings
+                                                          ├ stats
+                                                          ├ patterns
+                                                          └ context
+                                                              ↓
+                                                      Feature vector (1545)
+                                                              ↓
+                                                        StandardScaler
+                                                              ↓
+                                                            SMOTE
+                                                              ↓
+                                                      logistic regression
+                                                              ↓
+                                                        Cross Validation
+                                                              ↓
+                                                          evaluation
+                                                              =
+                                                          Model saved 
+
 <p align="center">
   <img src="images/final_matrix.png" width="45%" />
   <img src="images/final_ROC.png" width="45%" />
 </p>
+
+
+
 
 
 
