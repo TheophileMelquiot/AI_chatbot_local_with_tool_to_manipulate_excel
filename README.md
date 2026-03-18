@@ -129,35 +129,35 @@ The fact that the model still reaches ~0.49 without any header at all shows the 
 
 Core Architectural Weaknesses:
 
-1. Over-reliance on header embeddings - feature importance analysis shows headers account for 0.2285 of the signal. This is a significant weakness because:
+**Over-reliance on header embeddings - feature importance analysis shows headers account for 0.2285 of the signal. This is a significant weakness because:**
   
   - Real-world data quality issues (misspelled headers, non-standard naming) will break this assumption
   - The model generalizes poorly to datasets with naming conventions it hasn't seen
   - Building a 1545-feature model that's essentially 88% dependent on one feature
 
-2. Shallow model capacity - Logistic regression on embeddings is fundamentally linear:
+**Shallow model capacity - Logistic regression on embeddings is fundamentally linear:**
 
   - Complex multi-class interactions (description confusing with report, client name) require non-linear decision boundaries, an XGBoost will probably have better result due to his architecture 
   - You're throwing 1545 features into a linear classifier—diminishing returns kick in fast
   - Adding context embedding and combined embedding provides marginal gains (0.042 each) compared to header dominance
 
-3. Stats block is dead weight - 0.0000 feature importance means:
+**Stats block is dead weight - 0.0000 feature importance means:**
   
   - Nine statistical features add nothing after embeddings capture them
   - This suggests the embeddings are already picking up distribution patterns
   - The architecture is redundant rather than complementary
 
-3. Class imbalance and SMOTE risks:
+**Class imbalance and SMOTE risks:**
 
   - SMOTE fills feature space by interpolation—it creates synthetic samples that may not reflect real-world variations
   - Weakest class (description: f1=0.70) still shows confusion after SMOTE, suggesting the synthetic samples aren't helping
 
-4. Limited sample-level granularity - Using only sample values for embedding:
+**Limited sample-level granularity - Using only sample values for embedding:**
 
   - You're encoding what the data "looks like" but not why it looks that way
   - Missing contextual metadata (data type, length patterns, null distributions at row level)
 
-5. Generalization concerns:
+**Generalization concerns:**
 
   - Your fold 5 accuracy drops to 0.877 vs 0.927+ for others (8% variance)—this is real instability
   - Cross-validation tells you the model can generalize, not that it will on truly novel data
