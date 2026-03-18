@@ -22,13 +22,13 @@ from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import StandardScaler
 import numpy as np
 from imblearn.over_sampling import SMOTE
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn.metrics import top_k_accuracy_score
-
+from xgboost import XGBClassifier
+from sklearn.preprocessing import StandardScaler
 
 warnings.filterwarnings("ignore")
 
@@ -201,6 +201,66 @@ def contains_currency(series):
     return 1 if currency.mean() > 0.3 else 0
 
 # ==========================================
+# PATTERN DETECTORS
+# ==========================================
+
+def is_email_column(series):
+    values = series.dropna().astype(str)
+
+    if len(values) == 0:
+        return 0
+
+    pattern = values.str.contains(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+
+    return 1 if pattern.mean() > 0.6 else 0
+
+
+def is_phone_column(series):
+    values = series.dropna().astype(str)
+
+    if len(values) == 0:
+        return 0
+
+    pattern = values.str.contains(r"\+?\d[\d\s\-]{7,}")
+
+    return 1 if pattern.mean() > 0.6 else 0
+
+
+def is_zip_column(series):
+    values = series.dropna().astype(str)
+
+    if len(values) == 0:
+        return 0
+
+    pattern = values.str.match(r"^\d{5}$")
+
+    return 1 if pattern.mean() > 0.6 else 0
+
+
+def is_uuid_column(series):
+    values = series.dropna().astype(str)
+
+    if len(values) == 0:
+        return 0
+
+    pattern = values.str.match(
+        r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    )
+
+    return 1 if pattern.mean() > 0.6 else 0
+
+
+def is_price_column(series):
+    values = series.dropna().astype(str)
+
+    if len(values) == 0:
+        return 0
+
+    pattern = values.str.match(r"^-?\d+(\.\d{1,2})?$")
+
+    return 1 if pattern.mean() > 0.7 else 0
+
+# ==========================================
 # EXTRACTION VALEURS COLONNE
 # ==========================================
 
@@ -225,7 +285,7 @@ def is_valid_column_name(name):
 
     return True
 
-def extract_column_samples(df, col, n=5, max_cell_chars=60, max_total_chars=200):
+def extract_column_samples(df, col, n=15, max_cell_chars=60, max_total_chars=200):
 
     values = df[col].dropna().astype(str)
 
@@ -661,17 +721,23 @@ def train_model():
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
-        #Normalisation of the features, avoiding certains features to over throne only due their range of value being larger without having the most importance weight to the model, and creating bias 
-        scaler = StandardScaler()
-        X_train = scaler.fit_transform(X_train)
-        X_test = scaler.transform(X_test)
-
         #Creation of news sample for undermining classes better to use that, than recalculatng the weight in this parameter cause the under present class would still dont have a lot of representation 
         smote = SMOTE(random_state=42)
         X_train, y_train = smote.fit_resample(X_train, y_train)
 
         #Creation of the modele, 2000 authorising much iteration and -1 working on all the available CPU 
-        clf = LogisticRegression(max_iter=2000, n_jobs=-1)
+        clf = XGBClassifier(
+            objective="multi:softprob",
+            num_class=len(le.classes_),
+            n_estimators=600,
+            max_depth=6,
+            learning_rate=0.05,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            tree_method="hist",
+            n_jobs=-1,
+            random_state=42
+        )
 
         #model predict y with x 
         clf.fit(X_train, y_train)
@@ -702,16 +768,22 @@ def train_model():
     #initializing the final model to train on full dataset 
     print("\nTraining final model on full dataset...")
 
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    clf = LogisticRegression(
-        max_iter=2000,
-        n_jobs=-1
+    clf = XGBClassifier(
+        objective="multi:softprob",
+        num_class=len(le.classes_),
+        n_estimators=600,
+        max_depth=6,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        tree_method="hist",
+        n_jobs=-1,
+        random_state=42
     )
 
+    clf.fit(X, y)
     # entraîner sur tout le dataset
-    clf.fit(X_scaled, y)
+    clf.fit(X, y)
 
     print("\nConfusion matrix")
 
@@ -767,9 +839,8 @@ def train_model():
     model_bundle = {
         "classifier": clf,
         "label_encoder": le,
-        "embedder_name": EMBEDDER_NAME,
-        "scaler" : scaler
-    }
+        "embedder_name": EMBEDDER_NAME
+        }
 
     print("\n🔎 SANITY CHECK : LABEL SHUFFLE TEST")
 
@@ -803,9 +874,8 @@ def train_model():
     model_bundle = {
         "classifier": clf,
         "label_encoder": le,
-        "embedder_name": EMBEDDER_NAME,
-        "scaler" : scaler
-    }
+        "embedder_name": EMBEDDER_NAME
+        }
 
     joblib.dump(model_bundle, MODEL_PKL)
     header_ablation_test(df, embedder, clf, le)
@@ -860,7 +930,6 @@ class ColumnClassifier:
         self.clf = bundle["classifier"]
         self.le = bundle["label_encoder"]
         self.embedder = SentenceTransformer(bundle["embedder_name"])
-        self.scaler = bundle["scaler"]
 
 
     def predict(self, header, sample_values="", left_header="", right_header=""):
@@ -910,12 +979,6 @@ class ColumnClassifier:
         # -----------------------------
 
         X = build_features(df, self.embedder)
-
-        # -----------------------------
-        # apply scaler used in training
-        # -----------------------------
-
-        X = self.scaler.transform(X)
 
         # -----------------------------
         # prediction
