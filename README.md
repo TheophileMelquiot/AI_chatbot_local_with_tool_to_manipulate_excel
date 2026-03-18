@@ -71,7 +71,6 @@ Full pipeline of how i train my model :
 
 header embedding 384 + values embedding 384 + combined 384 + context 384 + stats 9 = 1545 features
 
-
 **Feature Engineering (The Foundation):**
 
 The reason i create 4 different embedding types instead of just one simple embedding is because each capture different aspect of the data. The header embedding understand the semantic meaning of the column name, the value embedding capture what the actual data look like, the combined embedding give context of both together, and the context embedding take into account the surrounding columns. This multi-perspective approach is crucial because a "Price" column with values [100, 200, 300] look very different from a "Price" column with values [0.1, 0.2, 0.3], same semantic meaning but completely different statistical pattern.
@@ -101,6 +100,7 @@ Once you confirm through cross-validation that your model architecture and prepr
   <img src="images/final_ROC.png" width="45%" />
 </p>
 
+## Result
 
 **Performance :**
 
@@ -125,8 +125,46 @@ The random header test drops accuracy to **0.471** compared to 0.924 at normal o
 The fact that the model still reaches ~0.49 without any header at all shows the values embedding, combined and context blocks provide a solid secondary signal and the model is not purely relying on one feature. 49% accuracy on an 11-class problem (random chance ≈ 9%, majority class ~30%) is actually meaningful residual performance from the value side alone.
 
 
+## Critics 
 
+Core Architectural Weaknesses:
+
+1. Over-reliance on header embeddings - feature importance analysis shows headers account for 0.2285 of the signal. This is a significant weakness because:
+
+- Real-world data quality issues (misspelled headers, non-standard naming) will break this assumption
+- The model generalizes poorly to datasets with naming conventions it hasn't seen
+- Building a 1545-feature model that's essentially 88% dependent on one feature
+
+2. Shallow model capacity - Logistic regression on embeddings is fundamentally linear:
+
+- Complex multi-class interactions (description confusing with report, client name) require non-linear decision boundaries, an XGBoost will probably have better result due to his architecture 
+- You're throwing 1545 features into a linear classifier—diminishing returns kick in fast
+- Adding context embedding and combined embedding provides marginal gains (0.042 each) compared to header dominance
+
+3. Stats block is dead weight - 0.0000 feature importance means:
+
+- Nine statistical features add nothing after embeddings capture them
+- This suggests the embeddings are already picking up distribution patterns
+- The architecture is redundant rather than complementary
+
+3. Class imbalance and SMOTE risks:
+
+- SMOTE fills feature space by interpolation—it creates synthetic samples that may not reflect real-world variations
+- Weakest class (description: f1=0.70) still shows confusion after SMOTE, suggesting the synthetic samples aren't helping
+
+4. Limited sample-level granularity - Using only sample values for embedding:
+
+- You're encoding what the data "looks like" but not why it looks that way
+- Missing contextual metadata (data type, length patterns, null distributions at row level)
+
+5. Generalization concerns:
+
+- Your fold 5 accuracy drops to 0.877 vs 0.927+ for others (8% variance)—this is real instability
+- Cross-validation tells you the model can generalize, not that it will on truly novel data
+- Your test set was likely drawn from the same distribution; real-world Excel files may be structurally different
 
 ## Conclusion
 
 While the model demonstrates remarkable capabilities, it is crucial to acknowledge its inherent limitations. The neural architecture, while sophisticated, suffers from biases rooted in training data and lacks the ability to understand context in a human-like manner. Furthermore, over-reliance on statistical inferences can lead to errors in judgment and a lack of common sense reasoning. These architectural flaws highlight the need for continuous improvement and critical evaluation of AI models in practical applications.
+To go further, i should switch to an XGBoost model rather than an logistic regression handling better for non linear interaction what our problem is about 
+
