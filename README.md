@@ -101,7 +101,6 @@ Once you confirm through cross-validation that your model architecture and prepr
   <img src="images/final_ROC.png" width="45%" />
 </p>
 
-The three categories below are a direct reflection of the output structure of the training script : a classic performance block, a permutation-based feature importance block, and a set of adversarial sanity checks. They make sense as they cover orthogonal questions : how good is the model, what is it actually using, and can i trust the signal.
 
 **Performance :**
 
@@ -124,6 +123,8 @@ The label shuffle test gives an accuracy of **0.185**, well below the 0.3 thresh
 The random header test drops accuracy to **0.471** compared to 0.924 at normal operation, confirming what the feature importance already showed : the header name is the dominant feature and replacing it with noise destroys roughly half the model capacity. The header ablation test (empty string instead of column name) gives **0.499**, very close to the random header result, meaning an empty header and a random garbage header are equivalent for the model, both remove the primary source of signal.
 
 The fact that the model still reaches ~0.49 without any header at all shows the values embedding, combined and context blocks provide a solid secondary signal and the model is not purely relying on one feature. 49% accuracy on an 11-class problem (random chance ≈ 9%, majority class ~30%) is actually meaningful residual performance from the value side alone.
+
+## Conclusion 
 
 
 
