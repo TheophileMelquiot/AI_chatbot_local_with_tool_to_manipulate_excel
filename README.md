@@ -101,6 +101,30 @@ Once you confirm through cross-validation that your model architecture and prepr
   <img src="images/final_ROC.png" width="45%" />
 </p>
 
+The three categories below are a direct reflection of the output structure of the training script : a classic performance block, a permutation-based feature importance block, and a set of adversarial sanity checks. They make sense as they cover orthogonal questions : how good is the model, what is it actually using, and can i trust the signal.
+
+**Performance :**
+
+The cross-validation gives a mean accuracy of **0.9248 ± 0.0242** across 5 folds (0.927, 0.941, 0.937, 0.941, 0.877), the spread is reasonable, fold 5 is slightly lower but nothing alarming, the model is consistent. Top-3 accuracy is **0.984** which mean that when the model is wrong, the right label is almost always in its top 3 candidates, so the errors are soft mistakes near the decision boundary rather than completely wrong predictions.
+
+Looking at the classification report, **montant** (f1=0.97), **quantite** (0.97) and **nom_client** (0.92) are the strongest classes, they have large support and very distinctive patterns. **description** is the clear weak point with precision 0.71, recall 0.68 and f1 0.70 : the confusion matrix shows it leaking 0.14 into nom_client and 0.18 into rapport, which makes sense because description columns often contain free-text that look like a client name or a report comment. The **categorie** class at 0.82 recall also carries some confusion but with decent support (39 samples) and a 0.83 f1 it is manageable.
+
+The ROC curves tell a very strong story : **macro OVR AUC = 0.9990**, almost every class hits AUC=1.00. The two lowest are rapport (0.96) and description (0.97) which is consistent with the classification report. The discriminative power of the model is excellent even if the decision boundary on a couple of classes is not perfectly tight.
+
+**Feature Importance :**
+
+The block permutation importance shows that **header** is responsible for the majority of the signal (drop of **0.2285** when permuted), which means the model is mostly learning from the semantic meaning of the column name. The combined (0.0420) and context (0.0420) blocks contribute equally and meaningfully, confirming that encoding header + values together and taking into account neighboring columns does add information beyond the header alone. The **values block alone** (0.0166) is surprisingly weak, meaning the raw value samples without the header context do not carry much discriminative power on their own. The **stats block** (0.0000) shows zero drop when permuted, the 9 statistical features (mean, std, unique ratio ...) do not contribute independently once the embeddings are there, they are likely redundant with what the embeddings already capture.
+
+This is a useful insight for the next iteration : stats could be removed or replaced with more targeted hand-crafted features, and putting more effort into the values embedding or value-level patterns could lift description performance in particular.
+
+**Sanity Tests :**
+
+The label shuffle test gives an accuracy of **0.185**, well below the 0.3 threshold coded in the script. The model trained on randomly shuffled labels learns nothing useful, which confirm there is no data leakage, no hidden shortcut between train and test, the pipeline is clean.
+
+The random header test drops accuracy to **0.471** compared to 0.924 at normal operation, confirming what the feature importance already showed : the header name is the dominant feature and replacing it with noise destroys roughly half the model capacity. The header ablation test (empty string instead of column name) gives **0.499**, very close to the random header result, meaning an empty header and a random garbage header are equivalent for the model, both remove the primary source of signal.
+
+The fact that the model still reaches ~0.49 without any header at all shows the values embedding, combined and context blocks provide a solid secondary signal and the model is not purely relying on one feature. 49% accuracy on an 11-class problem (random chance ≈ 9%, majority class ~30%) is actually meaningful residual performance from the value side alone.
+
 
 
 
