@@ -166,5 +166,5 @@ Core Architectural Weaknesses:
 ## Conclusion
 
 While the model demonstrates remarkable capabilities, it is crucial to acknowledge its inherent limitations. The neural architecture, while sophisticated, suffers from biases rooted in training data and lacks the ability to understand context in a human-like manner. Furthermore, over-reliance on statistical inferences can lead to errors in judgment and a lack of common sense reasoning. These architectural flaws highlight the need for continuous improvement and critical evaluation of AI models in practical applications.
-To go further, i should switch to an XGBoost model rather than an logistic regression handling better for non linear interaction what our problem is about 
 
+To go further, i should switch to an XGBoost model rather than an logistic regression handling better for non linear interaction what our problem is about. Which is what i did, and just by switching to the XGBoost without changing the training dataset or anything in the architecture we get an 0.914 accuracy on the whole dataset with an 0.0073 standart deviation across the fold which is far better than the logistic regression, now with modifying the training dataset and the pipeline we would probably get better result or more stable with XGBoost than the logistic regression. 
